@@ -33,7 +33,20 @@ impl InitializeAccount2<'_> {
         self.invoke_signed(&[])
     }
 
+    #[inline(always)]
+    pub fn invoke_with_program(&self, program_id: &Pubkey) -> ProgramResult {
+        self.invoke_signed_with_program(&[], program_id)
+    }
+
     pub fn invoke_signed(&self, signers: &[Signer]) -> ProgramResult {
+        self.invoke_signed_with_program(signers, &crate::ID)
+    }
+
+    pub fn invoke_signed_with_program(
+        &self,
+        signers: &[Signer],
+        program_id: &Pubkey,
+    ) -> ProgramResult {
         // account metadata
         let account_metas: [AccountMeta; 3] = [
             AccountMeta::writable(self.account.key()),
@@ -52,7 +65,7 @@ impl InitializeAccount2<'_> {
         write_bytes(&mut instruction_data[1..], self.owner);
 
         let instruction = Instruction {
-            program_id: &crate::ID,
+            program_id: program_id,
             accounts: &account_metas,
             data: unsafe { from_raw_parts(instruction_data.as_ptr() as _, 33) },
         };
